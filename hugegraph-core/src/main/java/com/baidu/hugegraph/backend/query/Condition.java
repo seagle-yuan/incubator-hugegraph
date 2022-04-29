@@ -77,14 +77,15 @@ public abstract class Condition {
             // TODO: support collection-property textcontains
             return v1 != null && ((String) v1).contains((String) v2);
         }),
-        TEXT_CONTAINS_ANY("textcontainsany", String.class, Collection.class,
-                          (v1, v2) -> {
+        TEXT_CONTAINS_ANY("textcontainsany", String.class, Collection.class, (v1, v2) -> {
             assert v2 != null;
             if (v1 == null) {
                 return false;
             }
+
             @SuppressWarnings("unchecked")
             Collection<String> words = (Collection<String>) v2;
+
             for (String word : words) {
                 if (((String) v1).contains(word)) {
                     return true;
@@ -92,6 +93,7 @@ public abstract class Condition {
             }
             return false;
         }),
+
         CONTAINS("contains", Collection.class, null, (v1, v2) -> {
             assert v2 != null;
             return v1 != null && ((Collection<?>) v1).contains(v2);
