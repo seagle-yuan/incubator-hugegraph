@@ -198,8 +198,7 @@ public class BinaryBackendEntry implements BackendEntry {
     }
 
     public int hashCode() {
-        return super.hashCode() ^
-                this.id().hashCode() ^
+        return this.id().hashCode() ^
                this.columns.size();
     }
 

@@ -377,8 +377,7 @@ public class TextBackendEntry implements BackendEntry, Cloneable {
     // ConcurrentSkipListMap extend AbstractMap and AbstractMap implement
     // hashCode()
     public int hashCode() {
-        return super.hashCode() ^
-               this.id().hashCode() ^
+        return this.id().hashCode() ^
                this.columns().hashCode();
 
     }
