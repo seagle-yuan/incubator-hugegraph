@@ -115,6 +115,18 @@
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-jersey3</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.opencypher.gremlin</groupId>
+            <artifactId>translation</artifactId>
+            <version>1.0.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-jaxrs2-jakarta</artifactId>
+            <version>2.1.9</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -153,7 +165,7 @@
                             </addDefaultSpecificationEntries>
                         </manifest>
                         <manifestEntries>
-                            <Implementation-Version>0.67.0.0</Implementation-Version>
+                            <Implementation-Version>0.69.0.0</Implementation-Version>
                         </manifestEntries>
                     </archive>
                 </configuration>
