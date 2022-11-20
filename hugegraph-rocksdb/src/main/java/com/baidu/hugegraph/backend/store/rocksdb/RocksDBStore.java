@@ -26,6 +26,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -182,7 +183,7 @@ public abstract class RocksDBStore extends AbstractBackendStore<Session> {
     }
 
     protected List<String> tableNames(HugeType type) {
-        return type != HugeType.OLAP ? Arrays.asList(this.table(type).table()) :
+        return type != HugeType.OLAP ? Collections.singletonList(this.table(type).table()) :
                                        this.olapTables();
     }
 
@@ -246,18 +247,28 @@ public abstract class RocksDBStore extends AbstractBackendStore<Session> {
                 }));
             }
         }
-        this.waitOpenFinish(futures, openPool);
+
+        try {
+            this.waitOpenFinished(futures);
+        } finally {
+            this.shutdownOpenPool(openPool);
+        }
     }
 
-    private void waitOpenFinish(List<Future<?>> futures,
-                                ExecutorService openPool) {
+    private void waitOpenFinished(List<Future<?>> futures) {
         for (Future<?> future : futures) {
             try {
                 future.get();
             } catch (Throwable e) {
+                if (e.getCause() instanceof ConnectionException) {
+                    throw new ConnectionException("Failed to open RocksDB store", e);
+                }
                 throw new BackendException("Failed to open RocksDB store", e);
             }
         }
+    }
+
+    private void shutdownOpenPool(ExecutorService openPool) {
         if (openPool.isShutdown()) {
             return;
         }
@@ -277,7 +288,7 @@ public abstract class RocksDBStore extends AbstractBackendStore<Session> {
                                        "open-pool");
         }
 
-        boolean terminated = false;
+        boolean terminated;
         openPool.shutdown();
         try {
             terminated = openPool.awaitTermination(OPEN_TIMEOUT,
@@ -472,6 +483,12 @@ public abstract class RocksDBStore extends AbstractBackendStore<Session> {
                 break;
             case ELIMINATE:
                 table.eliminate(session, entry);
+                break;
+            case UPDATE_IF_PRESENT:
+                table.updateIfPresent(session, entry);
+                break;
+            case UPDATE_IF_ABSENT:
+                table.updateIfAbsent(session, entry);
                 break;
             default:
                 throw new AssertionError(String.format(
@@ -787,6 +804,22 @@ public abstract class RocksDBStore extends AbstractBackendStore<Session> {
         }
     }
 
+    private List<Session> session() {
+        this.checkOpened();
+
+        if (this.tableDiskMapping.isEmpty()) {
+            return Collections.singletonList(this.sessions.session());
+        }
+
+        // Collect session of each table with optimized disk
+        List<Session> list = new ArrayList<>(this.tableDiskMapping.size() + 1);
+        list.add(this.sessions.session());
+        for (String disk : this.tableDiskMapping.values()) {
+            list.add(db(disk).session());
+        }
+        return list;
+    }
+
     private void closeSessions() {
         Iterator<Map.Entry<String, RocksDBSessions>> iter = this.dbs.entrySet()
                                                                     .iterator();
@@ -798,22 +831,6 @@ public abstract class RocksDBStore extends AbstractBackendStore<Session> {
                 iter.remove();
             }
         }
-    }
-
-    private List<Session> session() {
-        this.checkOpened();
-
-        if (this.tableDiskMapping.isEmpty()) {
-            return Arrays.asList(this.sessions.session());
-        }
-
-        // Collect session of each table with optimized disk
-        List<Session> list = new ArrayList<>(this.tableDiskMapping.size() + 1);
-        list.add(this.sessions.session());
-        for (String disk : this.tableDiskMapping.values()) {
-            list.add(db(disk).session());
-        }
-        return list;
     }
 
     private Collection<RocksDBSessions> sessions() {
@@ -1078,7 +1095,7 @@ public abstract class RocksDBStore extends AbstractBackendStore<Session> {
             String name = this.olapTableName(id);
             RocksDBTable table = this.table(name);
             RocksDBSessions db = this.db(HugeType.OLAP);
-            if (table == null || !db.existsTable(table.table())) {
+            if (!db.existsTable(table.table())) {
                 throw new HugeException("Not exist table '%s''", name);
             }
             this.dropTable(db, table.table());
@@ -1090,7 +1107,7 @@ public abstract class RocksDBStore extends AbstractBackendStore<Session> {
             String name = this.olapTableName(id);
             RocksDBTable table = this.table(name);
             RocksDBSessions db = this.db(HugeType.OLAP);
-            if (table == null || !db.existsTable(table.table())) {
+            if (!db.existsTable(table.table())) {
                 throw new HugeException("Not exist table '%s''", name);
             }
             this.dropTable(db, table.table());

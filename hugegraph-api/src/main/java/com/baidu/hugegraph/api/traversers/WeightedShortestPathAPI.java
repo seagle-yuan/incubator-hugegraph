@@ -44,7 +44,6 @@ import com.baidu.hugegraph.api.graph.VertexAPI;
 import com.baidu.hugegraph.backend.id.Id;
 import com.baidu.hugegraph.backend.query.QueryResults;
 import com.baidu.hugegraph.core.GraphManager;
-import com.baidu.hugegraph.server.RestServer;
 import com.baidu.hugegraph.traversal.algorithm.SingleSourceShortestPathTraverser;
 import com.baidu.hugegraph.traversal.algorithm.SingleSourceShortestPathTraverser.NodeWithWeight;
 import com.baidu.hugegraph.type.define.Directions;
@@ -57,7 +56,7 @@ import com.codahale.metrics.annotation.Timed;
 @Tag(name = "WeightedShortestPathAPI")
 public class WeightedShortestPathAPI extends API {
 
-    private static final Logger LOG = Log.logger(RestServer.class);
+    private static final Logger LOG = Log.logger(WeightedShortestPathAPI.class);
 
     @GET
     @Timed

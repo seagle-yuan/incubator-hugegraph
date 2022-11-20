@@ -27,17 +27,15 @@ import com.baidu.hugegraph.backend.serializer.SerializerFactory;
 
 public class AnalyzerFactory {
 
-    private static Map<String, Class<? extends Analyzer>> analyzers;
+    private static final Map<String, Class<? extends Analyzer>> ANALYZERS;
 
     static {
-        analyzers = new ConcurrentHashMap<>();
+        ANALYZERS = new ConcurrentHashMap<>();
     }
 
     public static Analyzer analyzer(String name, String mode) {
         name = name.toLowerCase();
         switch (name) {
-            case "word":
-                return new WordAnalyzer(mode);
             case "ansj":
                 return new AnsjAnalyzer(mode);
             case "hanlp":
@@ -58,7 +56,7 @@ public class AnalyzerFactory {
     }
 
     private static Analyzer customizedAnalyzer(String name, String mode) {
-        Class<? extends Analyzer> clazz = analyzers.get(name);
+        Class<? extends Analyzer> clazz = ANALYZERS.get(name);
         if (clazz == null) {
             throw new HugeException("Not exists analyzer: %s", name);
         }
@@ -91,12 +89,12 @@ public class AnalyzerFactory {
         }
 
         // Check exists
-        if (analyzers.containsKey(name)) {
+        if (ANALYZERS.containsKey(name)) {
             throw new HugeException("Exists analyzer: %s(%s)",
-                                    name, analyzers.get(name).getName());
+                                    name, ANALYZERS.get(name).getName());
         }
 
         // Register class
-        analyzers.put(name, (Class) clazz);
+        ANALYZERS.put(name, (Class) clazz);
     }
 }

@@ -136,7 +136,7 @@ public class StandardHugeGraph implements HugeGraph {
            CoreOptions.STORE
     );
 
-    private static final Logger LOG = Log.logger(HugeGraph.class);
+    private static final Logger LOG = Log.logger(StandardHugeGraph.class);
 
     private volatile boolean started;
     private volatile boolean closed;
@@ -715,6 +715,12 @@ public class StandardHugeGraph implements HugeGraph {
     }
 
     @Override
+    public void updatePropertyKey(PropertyKey pkey) {
+        assert this.name.equals(pkey.graph().name());
+        this.schemaTransaction().updatePropertyKey(pkey);
+    }
+
+    @Override
     public Id removePropertyKey(Id pkey) {
         if (this.propertyKey(pkey).olap()) {
             this.clearVertexCache();
@@ -756,9 +762,15 @@ public class StandardHugeGraph implements HugeGraph {
     }
 
     @Override
-    public void addVertexLabel(VertexLabel vertexLabel) {
-        assert this.name.equals(vertexLabel.graph().name());
-        this.schemaTransaction().addVertexLabel(vertexLabel);
+    public void addVertexLabel(VertexLabel label) {
+        assert this.name.equals(label.graph().name());
+        this.schemaTransaction().addVertexLabel(label);
+    }
+
+    @Override
+    public void updateVertexLabel(VertexLabel label) {
+        assert this.name.equals(label.graph().name());
+        this.schemaTransaction().updateVertexLabel(label);
     }
 
     @Override
@@ -812,9 +824,15 @@ public class StandardHugeGraph implements HugeGraph {
     }
 
     @Override
-    public void addEdgeLabel(EdgeLabel edgeLabel) {
-        assert this.name.equals(edgeLabel.graph().name());
-        this.schemaTransaction().addEdgeLabel(edgeLabel);
+    public void addEdgeLabel(EdgeLabel label) {
+        assert this.name.equals(label.graph().name());
+        this.schemaTransaction().addEdgeLabel(label);
+    }
+
+    @Override
+    public void updateEdgeLabel(EdgeLabel label) {
+        assert this.name.equals(label.graph().name());
+        this.schemaTransaction().updateEdgeLabel(label);
     }
 
     @Override
@@ -861,6 +879,12 @@ public class StandardHugeGraph implements HugeGraph {
                this.name.equals(schemaLabel.graph().name());
         assert this.name.equals(indexLabel.graph().name());
         this.schemaTransaction().addIndexLabel(schemaLabel, indexLabel);
+    }
+
+    @Override
+    public void updateIndexLabel(IndexLabel label) {
+        assert this.name.equals(label.graph().name());
+        this.schemaTransaction().updateIndexLabel(label);
     }
 
     @Override
@@ -1371,7 +1395,7 @@ public class StandardHugeGraph implements HugeGraph {
 
         private void setOpened() {
             // The backend tx may be reused, here just set a flag
-            assert this.opened.get() == false;
+            assert !this.opened.get();
             this.opened.set(true);
             this.transactions.get().openedTime(DateUtil.now().getTime());
             this.refs.incrementAndGet();

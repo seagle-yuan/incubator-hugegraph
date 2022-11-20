@@ -28,7 +28,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 
 import com.baidu.hugegraph.HugeException;
-import com.baidu.hugegraph.HugeGraph;
 import com.baidu.hugegraph.config.HugeConfig;
 import com.baidu.hugegraph.core.GraphManager;
 import com.baidu.hugegraph.util.Log;
@@ -36,7 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class LicenseVerifier {
 
-    private static final Logger LOG = Log.logger(HugeGraph.class);
+    private static final Logger LOG = Log.logger(LicenseVerifier.class);
 
     private static final String LICENSE_PARAM_PATH = "/verify-license.json";
 

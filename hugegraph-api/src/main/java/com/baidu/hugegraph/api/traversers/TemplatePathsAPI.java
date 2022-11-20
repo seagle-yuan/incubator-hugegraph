@@ -44,7 +44,6 @@ import com.baidu.hugegraph.HugeGraph;
 import com.baidu.hugegraph.backend.id.Id;
 import com.baidu.hugegraph.backend.query.QueryResults;
 import com.baidu.hugegraph.core.GraphManager;
-import com.baidu.hugegraph.server.RestServer;
 import com.baidu.hugegraph.traversal.algorithm.HugeTraverser;
 import com.baidu.hugegraph.traversal.algorithm.TemplatePathsTraverser;
 import com.baidu.hugegraph.traversal.algorithm.steps.RepeatEdgeStep;
@@ -58,7 +57,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Tag(name = "TemplatePathsAPI")
 public class TemplatePathsAPI extends TraverserAPI {
 
-    private static final Logger LOG = Log.logger(RestServer.class);
+    private static final Logger LOG = Log.logger(TemplatePathsAPI.class);
 
     @POST
     @Timed
@@ -136,7 +135,7 @@ public class TemplatePathsAPI extends TraverserAPI {
         @JsonProperty("capacity")
         public long capacity = Long.parseLong(DEFAULT_CAPACITY);
         @JsonProperty("limit")
-        public long limit = Long.parseLong(DEFAULT_PATHS_LIMIT);
+        public int limit = Integer.parseInt(DEFAULT_PATHS_LIMIT);
         @JsonProperty("with_vertex")
         public boolean withVertex = false;
 

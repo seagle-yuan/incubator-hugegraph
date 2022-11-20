@@ -76,7 +76,7 @@ import com.baidu.hugegraph.util.Log;
 
 public final class GraphManager {
 
-    private static final Logger LOG = Log.logger(RestServer.class);
+    private static final Logger LOG = Log.logger(GraphManager.class);
 
     private final String graphsDir;
     private final Map<String, Graph> graphs;
@@ -98,7 +98,11 @@ public final class GraphManager {
         this.rpcClient = new RpcClientProvider(conf);
         this.eventHub = hub;
         this.conf = conf;
+    }
 
+    public void init() {
+        E.checkArgument(this.graphs.isEmpty(),
+                        "GraphManager has been initialized before");
         this.listenChanges();
 
         this.loadGraphs(ConfigUtil.scanGraphsDir(this.graphsDir));
@@ -111,10 +115,10 @@ public final class GraphManager {
         // Raft will load snapshot firstly then launch election and replay log
         this.waitGraphsReady();
 
-        this.checkBackendVersionOrExit(conf);
-        this.serverStarted(conf);
+        this.checkBackendVersionOrExit(this.conf);
+        this.serverStarted(this.conf);
 
-        this.addMetrics(conf);
+        this.addMetrics(this.conf);
     }
 
     public void loadGraphs(Map<String, String> graphConfs) {
@@ -124,7 +128,7 @@ public final class GraphManager {
             HugeFactory.checkGraphName(name, "rest-server.properties");
             try {
                 this.loadGraph(name, graphConfPath);
-            } catch (RuntimeException e) {
+            } catch (Throwable e) {
                 LOG.error("Graph '{}' can't be loaded: '{}'",
                           name, graphConfPath, e);
             }
@@ -215,12 +219,12 @@ public final class GraphManager {
     }
 
     public void rollbackAll() {
-        this.graphs.values().forEach(graph -> {
+        for (Graph graph : this.graphs.values()) {
             if (graph.features().graph().supportsTransactions() &&
                 graph.tx().isOpen()) {
                 graph.tx().rollback();
             }
-        });
+        }
     }
 
     public void rollback(final Set<String> graphSourceNamesToCloseTxOn) {
@@ -228,12 +232,12 @@ public final class GraphManager {
     }
 
     public void commitAll() {
-        this.graphs.values().forEach(graph -> {
+        for (Graph graph : this.graphs.values()) {
             if (graph.features().graph().supportsTransactions() &&
                 graph.tx().isOpen()) {
                 graph.tx().commit();
             }
-        });
+        }
     }
 
     public void commit(final Set<String> graphSourceNamesToCloseTxOn) {
@@ -257,6 +261,13 @@ public final class GraphManager {
     }
 
     public void close() {
+        for (Graph graph : this.graphs.values()) {
+            try {
+                graph.close();
+            } catch (Throwable e) {
+                LOG.warn("Failed to close graph '{}'", graph, e);
+            }
+        }
         this.destroyRpcServer();
         this.unlistenChanges();
     }
@@ -296,6 +307,13 @@ public final class GraphManager {
     private com.alipay.remoting.rpc.RpcServer remotingRpcServer() {
         ServerConfig serverConfig = Whitebox.getInternalState(this.rpcServer,
                                                               "serverConfig");
+        serverConfig.buildIfAbsent();
+
+        // Start remote rpc server if none rpc services registered
+        // Note it goes here only when raft mode enabled
+        if (!serverConfig.getServer().isStarted()) {
+            serverConfig.getServer().start();
+        }
         return Whitebox.getInternalState(serverConfig.getServer(),
                                          "remotingServer");
     }
@@ -367,12 +385,16 @@ public final class GraphManager {
     }
 
     private void waitGraphsReady() {
+        if (!this.rpcServer.enabled()) {
+            LOG.info("RpcServer is not enabled, skip wait graphs ready");
+            return;
+        }
         com.alipay.remoting.rpc.RpcServer remotingRpcServer =
                                           this.remotingRpcServer();
-        this.graphs.keySet().forEach(name -> {
-            HugeGraph graph = this.graph(name);
+        for (String graphName : this.graphs.keySet()) {
+            HugeGraph graph = this.graph(graphName);
             graph.waitReady(remotingRpcServer);
-        });
+        }
     }
 
     private void checkBackendVersionOrExit(HugeConfig config) {

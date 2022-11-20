@@ -31,14 +31,13 @@ import org.slf4j.Logger;
 
 import com.baidu.hugegraph.backend.BackendException;
 import com.baidu.hugegraph.backend.store.mysql.MysqlSessions;
-import com.baidu.hugegraph.backend.store.mysql.MysqlStore;
 import com.baidu.hugegraph.backend.store.mysql.MysqlUtil;
 import com.baidu.hugegraph.config.HugeConfig;
 import com.baidu.hugegraph.util.Log;
 
 public class PostgresqlSessions extends MysqlSessions {
 
-    private static final Logger LOG = Log.logger(MysqlStore.class);
+    private static final Logger LOG = Log.logger(PostgresqlSessions.class);
 
     private static final String COCKROACH_DB_CREATE =
             "CREATE DATABASE %s ENCODING='UTF-8'";

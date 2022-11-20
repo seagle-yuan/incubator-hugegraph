@@ -49,7 +49,6 @@ import com.baidu.hugegraph.define.Checkable;
 import com.baidu.hugegraph.job.GremlinJob;
 import com.baidu.hugegraph.job.JobBuilder;
 import com.baidu.hugegraph.metrics.MetricsUtil;
-import com.baidu.hugegraph.server.RestServer;
 import com.baidu.hugegraph.util.E;
 import com.baidu.hugegraph.util.JsonUtil;
 import com.baidu.hugegraph.util.Log;
@@ -63,7 +62,7 @@ import com.google.common.collect.ImmutableMap;
 @Tag(name = "GremlinAPI")
 public class GremlinAPI extends API {
 
-    private static final Logger LOG = Log.logger(RestServer.class);
+    private static final Logger LOG = Log.logger(GremlinAPI.class);
 
     private static final int MAX_NAME_LENGTH = 256;
 

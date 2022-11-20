@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import com.baidu.hugegraph.HugeGraphParams;
 import com.baidu.hugegraph.backend.id.Id;
@@ -141,6 +142,11 @@ public final class CachedSchemaTransaction extends SchemaTransaction {
         graphEventHub.notify(Events.CACHE, action, type, id);
     }
 
+    private void notifyChanges(String action, HugeType type) {
+        EventHub graphEventHub = this.params().schemaEventHub();
+        graphEventHub.notify(Events.CACHE, action, type);
+    }
+
     private void resetCachedAll(HugeType type) {
         // Set the cache all flag of the schema type to false
         this.cachedTypes().put(type, false);
@@ -164,7 +170,7 @@ public final class CachedSchemaTransaction extends SchemaTransaction {
         this.arrayCaches.clear();
 
         if (notify) {
-            this.notifyChanges(Cache.ACTION_CLEARED, null, null);
+            this.notifyChanges(Cache.ACTION_CLEARED, null);
         }
     }
 
@@ -207,6 +213,16 @@ public final class CachedSchemaTransaction extends SchemaTransaction {
 
     private static Id generateId(HugeType type, String name) {
         return IdGenerator.of(type.string() + "-" + name);
+    }
+
+    @Override
+    protected void updateSchema(SchemaElement schema,
+                                Consumer<SchemaElement> updateCallback) {
+        super.updateSchema(schema, updateCallback);
+
+        this.updateCache(schema);
+
+        this.notifyChanges(Cache.ACTION_INVALIDED, schema.type(), schema.id());
     }
 
     @Override
@@ -370,23 +386,8 @@ public final class CachedSchemaTransaction extends SchemaTransaction {
             if (key >= this.size) {
                 return;
             }
-            switch (type) {
-                case PROPERTY_KEY:
-                    this.pks.set(key, value);
-                    break;
-                case VERTEX_LABEL:
-                    this.vls.set(key, value);
-                    break;
-                case EDGE_LABEL:
-                    this.els.set(key, value);
-                    break;
-                case INDEX_LABEL:
-                    this.ils.set(key, value);
-                    break;
-                default:
-                    // pass
-                    break;
-            }
+
+            this.setValue(type, key, value);
         }
 
         public void remove(HugeType type, Id id) {
@@ -396,27 +397,11 @@ public final class CachedSchemaTransaction extends SchemaTransaction {
                 return;
             }
             int key = (int) longId;
-            V value = null;
             if (key >= this.size) {
                 return;
             }
-            switch (type) {
-                case PROPERTY_KEY:
-                    this.pks.set(key, value);
-                    break;
-                case VERTEX_LABEL:
-                    this.vls.set(key, value);
-                    break;
-                case EDGE_LABEL:
-                    this.els.set(key, value);
-                    break;
-                case INDEX_LABEL:
-                    this.ils.set(key, value);
-                    break;
-                default:
-                    // pass
-                    break;
-            }
+
+            this.setValue(type, key, null);
         }
 
         public void clear() {
@@ -430,6 +415,26 @@ public final class CachedSchemaTransaction extends SchemaTransaction {
 
         public CachedTypes cachedTypes() {
             return this.cachedTypes;
+        }
+
+        private void setValue(HugeType type, int key, V value) {
+            switch (type) {
+                case PROPERTY_KEY:
+                    this.pks.set(key, value);
+                    break;
+                case VERTEX_LABEL:
+                    this.vls.set(key, value);
+                    break;
+                case EDGE_LABEL:
+                    this.els.set(key, value);
+                    break;
+                case INDEX_LABEL:
+                    this.ils.set(key, value);
+                    break;
+                default:
+                    // pass
+                    break;
+            }
         }
     }
 

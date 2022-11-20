@@ -231,7 +231,7 @@ public class HbaseSessions extends BackendSessionPool {
         }
     }
 
-    public void createPreSplitTable(String table, List<byte[]> cfs, 
+    public void createPreSplitTable(String table, List<byte[]> cfs,
                                     short numOfPartitions) throws IOException {
         TableDescriptorBuilder builder = TableDescriptorBuilder.newBuilder(
                 TableName.valueOf(this.namespace, table));
@@ -315,8 +315,11 @@ public class HbaseSessions extends BackendSessionPool {
                 //total += load.getMemStoreSizeMB() * Bytes.MB;
                 TableName tableName = TableName.valueOf(this.namespace, table);
                 for (RegionMetrics m : admin.getRegionMetrics(rs, tableName)) {
-                    total += m.getStoreFileSize().get(Size.Unit.BYTE);
-                    total += m.getMemStoreSize().get(Size.Unit.BYTE);
+                    Double storeFileSize = m.getStoreFileSize().get(Size.Unit.BYTE);
+                    total += storeFileSize.longValue();
+
+                    Double memStoreFileSize = m.getMemStoreSize().get(Size.Unit.BYTE);
+                    total += memStoreFileSize.longValue();
                 }
             }
         }
@@ -363,8 +366,7 @@ public class HbaseSessions extends BackendSessionPool {
         /**
          * Get a record by rowkey and qualifier from a table
          */
-        R get(String table, byte[] family, byte[] rowkey,
-                     byte[] qualifier);
+        R get(String table, byte[] family, byte[] rowkey, byte[] qualifier);
 
         /**
          * Get a record by rowkey from a table
@@ -458,7 +460,7 @@ public class HbaseSessions extends BackendSessionPool {
      * Session implement for HBase
      */
     public class Session extends AbstractBackendSession
-            implements HbaseSession<RowIterator> {
+                         implements HbaseSession<RowIterator> {
 
         private final Map<String, List<Row>> batch;
 
@@ -807,8 +809,9 @@ public class HbaseSessions extends BackendSessionPool {
                     Cell cell = cellScanner.current();
                     byte[] key = CellUtil.cloneQualifier(cell);
                     byte[] val = CellUtil.cloneValue(cell);
-                    LOG.info("  {}={}", StringEncoding.format(key),
-                                        StringEncoding.format(val));
+                    LOG.info("  {}={}",
+                             StringEncoding.format(key),
+                             StringEncoding.format(val));
                 }
             }
         }

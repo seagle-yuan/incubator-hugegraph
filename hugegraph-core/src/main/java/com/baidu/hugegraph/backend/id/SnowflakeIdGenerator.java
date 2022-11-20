@@ -36,7 +36,7 @@ import com.baidu.hugegraph.util.TimeUtil;
 
 public class SnowflakeIdGenerator extends IdGenerator {
 
-    private static final Logger LOG = Log.logger(Id.class);
+    private static final Logger LOG = Log.logger(SnowflakeIdGenerator.class);
 
     private static final Map<String, SnowflakeIdGenerator> INSTANCES =
                          new ConcurrentHashMap<>();
@@ -110,8 +110,8 @@ public class SnowflakeIdGenerator extends IdGenerator {
      */
     private static class IdWorker {
 
-        private long workerId;
-        private long datacenterId;
+        private final long workerId;
+        private final long datacenterId;
         private long sequence = 0L; // AtomicLong
         private long lastTimestamp = -1L;
 
@@ -159,7 +159,6 @@ public class SnowflakeIdGenerator extends IdGenerator {
                     timestamp = TimeUtil.tillNextMillis(this.lastTimestamp);
                 }
             } else {
-                assert timestamp < this.lastTimestamp;
                 LOG.error("Clock is moving backwards, " +
                           "rejecting requests until {}.",
                           this.lastTimestamp);

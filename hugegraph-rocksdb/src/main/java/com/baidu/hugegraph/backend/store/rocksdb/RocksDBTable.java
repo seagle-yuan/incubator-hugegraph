@@ -59,7 +59,7 @@ import com.baidu.hugegraph.util.StringEncoding;
 
 public class RocksDBTable extends BackendTable<Session, BackendEntry> {
 
-    private static final Logger LOG = Log.logger(RocksDBStore.class);
+    private static final Logger LOG = Log.logger(RocksDBTable.class);
 
     private final RocksDBShardSplitter shardSplitter;
 
@@ -119,6 +119,14 @@ public class RocksDBTable extends BackendTable<Session, BackendEntry> {
     public void eliminate(Session session, BackendEntry entry) {
         assert entry.columns().size() == 1;
         this.delete(session, entry);
+    }
+
+    @Override
+    public boolean queryExist(Session session, BackendEntry entry) {
+        Id id = entry.id();
+        try (BackendColumnIterator iter = this.queryById(session, id)) {
+            return iter.hasNext();
+        }
     }
 
     @Override
@@ -283,9 +291,8 @@ public class RocksDBTable extends BackendTable<Session, BackendEntry> {
         return false;
     }
 
-    protected static final BackendEntryIterator newEntryIterator(
-                                                BackendColumnIterator cols,
-                                                Query query) {
+    protected static BackendEntryIterator newEntryIterator(BackendColumnIterator cols,
+                                                           Query query) {
         return new BinaryEntryIterator<>(cols, query, (entry, col) -> {
             if (entry == null || !entry.belongToMe(col)) {
                 HugeType type = query.resultType();
@@ -299,7 +306,7 @@ public class RocksDBTable extends BackendTable<Session, BackendEntry> {
         });
     }
 
-    protected static final long sizeOfBackendEntry(BackendEntry entry) {
+    protected static long sizeOfBackendEntry(BackendEntry entry) {
         return BinaryEntryIterator.sizeOfEntry(entry);
     }
 

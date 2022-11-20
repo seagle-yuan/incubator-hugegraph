@@ -67,7 +67,7 @@ public class AdamicAdarAPI extends API {
                       @QueryParam("max_degree")
                       @DefaultValue(DEFAULT_MAX_DEGREE) long maxDegree,
                       @QueryParam("limit")
-                      @DefaultValue(DEFAULT_ELEMENTS_LIMIT) long limit) {
+                      @DefaultValue(DEFAULT_ELEMENTS_LIMIT) int limit) {
         LOG.debug("Graph [{}] get adamic adar between '{}' and '{}' with " +
                   "direction {}, edge label {}, max degree '{}' and limit '{}'",
                   graph, current, other, direction, edgeLabel, maxDegree,
@@ -80,9 +80,10 @@ public class AdamicAdarAPI extends API {
         Directions dir = Directions.convert(EdgeAPI.parseDirection(direction));
 
         HugeGraph g = graph(manager, graph);
-        PredictionTraverser traverser = new PredictionTraverser(g);
-        double score = traverser.adamicAdar(sourceId, targetId, dir,
-                                            edgeLabel, maxDegree, limit);
-        return JsonUtil.toJson(ImmutableMap.of("adamic_adar", score));
+        try (PredictionTraverser traverser = new PredictionTraverser(g)) {
+            double score = traverser.adamicAdar(sourceId, targetId, dir,
+                                                edgeLabel, maxDegree, limit);
+            return JsonUtil.toJson(ImmutableMap.of("adamic_adar", score));
+        }
     }
 }

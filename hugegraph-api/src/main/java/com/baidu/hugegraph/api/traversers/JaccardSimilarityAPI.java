@@ -44,7 +44,6 @@ import com.baidu.hugegraph.api.graph.EdgeAPI;
 import com.baidu.hugegraph.api.graph.VertexAPI;
 import com.baidu.hugegraph.backend.id.Id;
 import com.baidu.hugegraph.core.GraphManager;
-import com.baidu.hugegraph.server.RestServer;
 import com.baidu.hugegraph.structure.HugeVertex;
 import com.baidu.hugegraph.traversal.algorithm.steps.EdgeStep;
 import com.baidu.hugegraph.traversal.algorithm.JaccardSimilarTraverser;
@@ -61,7 +60,7 @@ import com.google.common.collect.ImmutableMap;
 @Tag(name = "JaccardSimilarityAPI")
 public class JaccardSimilarityAPI extends TraverserAPI {
 
-    private static final Logger LOG = Log.logger(RestServer.class);
+    private static final Logger LOG = Log.logger(JaccardSimilarityAPI.class);
 
     @GET
     @Timed

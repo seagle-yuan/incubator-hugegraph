@@ -42,7 +42,6 @@ import com.baidu.hugegraph.HugeGraph;
 import com.baidu.hugegraph.api.API;
 import com.baidu.hugegraph.backend.id.Id;
 import com.baidu.hugegraph.core.GraphManager;
-import com.baidu.hugegraph.server.RestServer;
 import com.baidu.hugegraph.structure.HugeVertex;
 import com.baidu.hugegraph.traversal.algorithm.NeighborRankTraverser;
 import com.baidu.hugegraph.type.define.Directions;
@@ -57,7 +56,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Tag(name = "NeighborRankAPI")
 public class NeighborRankAPI extends API {
 
-    private static final Logger LOG = Log.logger(RestServer.class);
+    private static final Logger LOG = Log.logger(NeighborRankAPI.class);
 
     @POST
     @Timed

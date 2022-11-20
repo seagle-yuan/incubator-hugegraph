@@ -66,6 +66,32 @@ public abstract class BackendTable<Session extends BackendSession, Entry> {
         // pass
     }
 
+    public void updateIfPresent(Session session, Entry entry) {
+        // TODO: use fine-grained row lock
+        synchronized (this.table) {
+            assert session == null || !session.hasChanges();
+            if (this.queryExist(session, entry)) {
+                this.insert(session, entry);
+                if (session != null) {
+                    session.commit();
+                }
+            }
+        }
+    }
+
+    public void updateIfAbsent(Session session, Entry entry) {
+        // TODO: use fine-grained row lock
+        synchronized (this.table) {
+            assert session == null || !session.hasChanges();
+            if (!this.queryExist(session, entry)) {
+                this.insert(session, entry);
+                if (session != null) {
+                    session.commit();
+                }
+            }
+        }
+    }
+
     /**
      *  Mapping query-type to table-type
      * @param query origin query
@@ -111,6 +137,8 @@ public abstract class BackendTable<Session extends BackendSession, Entry> {
     public abstract Iterator<BackendEntry> query(Session session, Query query);
 
     public abstract Number queryNumber(Session session, Query query);
+
+    public abstract boolean queryExist(Session session, Entry entry);
 
     public abstract void insert(Session session, Entry entry);
 
@@ -165,13 +193,13 @@ public abstract class BackendTable<Session extends BackendSession, Entry> {
                 count = 1;
             }
             long maxKey = this.maxKey();
-            double each = maxKey / count;
+            Double each = maxKey / count;
 
             List<Shard> splits = new ArrayList<>((int) count);
             String last = START;
             long offset = 0L;
             while (offset < maxKey) {
-                offset += each;
+                offset += each.longValue();
                 if (offset > maxKey) {
                     splits.add(new Shard(last, END, 0L));
                     break;

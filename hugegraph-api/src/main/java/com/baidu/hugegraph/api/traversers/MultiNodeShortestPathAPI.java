@@ -42,7 +42,6 @@ import com.baidu.hugegraph.HugeGraph;
 import com.baidu.hugegraph.backend.id.Id;
 import com.baidu.hugegraph.backend.query.QueryResults;
 import com.baidu.hugegraph.core.GraphManager;
-import com.baidu.hugegraph.server.RestServer;
 import com.baidu.hugegraph.traversal.algorithm.steps.EdgeStep;
 import com.baidu.hugegraph.traversal.algorithm.HugeTraverser;
 import com.baidu.hugegraph.traversal.algorithm.MultiNodeShortestPathTraverser;
@@ -56,7 +55,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Tag(name = "MultiNodeShortestPathAPI")
 public class MultiNodeShortestPathAPI extends TraverserAPI {
 
-    private static final Logger LOG = Log.logger(RestServer.class);
+    private static final Logger LOG = Log.logger(MultiNodeShortestPathAPI.class);
 
     @POST
     @Timed

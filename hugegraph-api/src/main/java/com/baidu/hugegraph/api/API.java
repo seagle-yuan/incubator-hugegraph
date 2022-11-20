@@ -36,7 +36,6 @@ import com.baidu.hugegraph.HugeGraph;
 import com.baidu.hugegraph.core.GraphManager;
 import com.baidu.hugegraph.define.Checkable;
 import com.baidu.hugegraph.metrics.MetricsUtil;
-import com.baidu.hugegraph.server.RestServer;
 import com.baidu.hugegraph.util.E;
 import com.baidu.hugegraph.util.JsonUtil;
 import com.baidu.hugegraph.util.Log;
@@ -45,7 +44,7 @@ import com.google.common.collect.ImmutableMap;
 
 public class API {
 
-    protected static final Logger LOG = Log.logger(RestServer.class);
+    protected static final Logger LOG = Log.logger(API.class);
 
     public static final String CHARSET = "UTF-8";
 

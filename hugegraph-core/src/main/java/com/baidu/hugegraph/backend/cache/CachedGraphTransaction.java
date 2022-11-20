@@ -203,6 +203,11 @@ public final class CachedGraphTransaction extends GraphTransaction {
         graphEventHub.notify(Events.CACHE, action, type, ids);
     }
 
+    private void notifyChanges(String action, HugeType type) {
+        EventHub graphEventHub = this.params().graphEventHub();
+        graphEventHub.notify(Events.CACHE, action, type);
+    }
+
     private void clearCache(HugeType type, boolean notify) {
         if (type == null || type == HugeType.VERTEX) {
             this.verticesCache.clear();
@@ -212,7 +217,7 @@ public final class CachedGraphTransaction extends GraphTransaction {
         }
 
         if (notify) {
-            this.notifyChanges(Cache.ACTION_CLEARED, null, null);
+            this.notifyChanges(Cache.ACTION_CLEARED, null);
         }
     }
 
@@ -340,7 +345,6 @@ public final class CachedGraphTransaction extends GraphTransaction {
          * try fetch a few of the head results and determine whether to cache.
          */
         final int tryMax = 1 + MAX_CACHE_EDGES_PER_QUERY;
-        assert tryMax > MAX_CACHE_EDGES_PER_QUERY;
         edges = new ArrayList<>(tryMax);
         for (int i = 0; rs.hasNext() && i < tryMax; i++) {
             edges.add(rs.next());
@@ -403,7 +407,7 @@ public final class CachedGraphTransaction extends GraphTransaction {
             if (invalidEdgesCache && this.enableCacheEdge()) {
                 // TODO: Use a more precise strategy to update the edge cache
                 this.edgesCache.clear();
-                this.notifyChanges(Cache.ACTION_CLEARED, HugeType.EDGE, null);
+                this.notifyChanges(Cache.ACTION_CLEARED, HugeType.EDGE);
             }
         }
     }
@@ -417,7 +421,7 @@ public final class CachedGraphTransaction extends GraphTransaction {
             if (indexLabel.baseType() == HugeType.EDGE_LABEL) {
                 // TODO: Use a more precise strategy to update the edge cache
                 this.edgesCache.clear();
-                this.notifyChanges(Cache.ACTION_CLEARED, HugeType.EDGE, null);
+                this.notifyChanges(Cache.ACTION_CLEARED, HugeType.EDGE);
             }
         }
     }
