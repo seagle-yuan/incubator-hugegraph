@@ -8,6 +8,7 @@ demo*
 gen-java
 build
 *.class
+apache-hugegraph-incubating-1.0.0
 
 ### STS ###
 .apt_generated
